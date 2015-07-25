@@ -3,15 +3,12 @@ package cli
 import (
 	"github.com/codegangsta/cli"
 	"github.com/mouadino/metastore/server"
-	"log"
 )
-
-const Version = "0.1.0"
 
 func Main(args []string) error {
 	app := cli.NewApp()
-	app.Name = "metastore"
-	app.Usage = "metadata storage"
+	app.Name = "Metastore"
+	app.Usage = "Metadata Storage"
 	app.Version = Version
 	app.Flags = []cli.Flag{
 		cli.IntFlag{
@@ -26,11 +23,12 @@ func Main(args []string) error {
 			EnvVar: "HOST",
 		},
 	}
+
 	app.Action = func(c *cli.Context) {
 		host := c.String("host")
 		port := c.Int("port")
-		log.Fatal(server.ListenAndServe(host, port))
-	}
 
+		server.Main(host, port)
+	}
 	return app.Run(args)
 }

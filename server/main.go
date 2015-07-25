@@ -1,16 +1,26 @@
 package server
 
 import (
-	"fmt"
-	"github.com/gorilla/mux"
-	"net/http"
-	_ "net/http/pprof"
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
 )
 
-func ListenAndServe(host string, port int) error {
-	muxRouter := mux.NewRouter()
-	muxRouter.HandleFunc("/", HomeHandler)
-	http.Handle("/", muxRouter)
-	addr := fmt.Sprintf("%s:%d", host, port)
-	return http.ListenAndServe(addr, nil)
+var currentServer *Server
+
+func Main(host string, port int) {
+	currentServer = MakeServer(host, port)
+	go currentServer.ListenAndServe()
+
+	waitForTermination()
+}
+
+func waitForTermination() {
+	term := make(chan os.Signal)
+	signal.Notify(term, os.Interrupt, syscall.SIGTERM)
+	select {
+	case <-term:
+		log.Print("Received SIGTERM, exiting ...")
+	}
 }
