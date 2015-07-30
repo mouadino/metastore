@@ -1,14 +1,16 @@
 package main
 
 import (
-	"github.com/mouadino/metastore/cli"
-	"log"
+	"fmt"
 	"os"
+
+	"github.com/mouadino/metastore/cli"
 )
 
 func main() {
 	err := cli.Main(os.Args)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
+		os.Exit(1)
 	}
 }
