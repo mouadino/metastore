@@ -1,36 +1,34 @@
 package testhelpers
 
-type DummyStore struct {
-	db map[string]string
-}
+type InMemoryStore map[string]string
 
-func (s *DummyStore) Open(_ string) error {
+func (s *InMemoryStore) Open(_ string) error {
 	return nil
 }
 
-func (s *DummyStore) Close() error {
+func (s *InMemoryStore) Close() error {
 	return nil
 }
 
-func (s *DummyStore) Get(key []byte) ([]byte, error) {
-	data, ok := s.db[string(key)]
+func (s *InMemoryStore) Get(key []byte) ([]byte, error) {
+	data, ok := (*s)[string(key)]
 	if !ok {
 		return nil, nil
 	}
 	return []byte(data), nil
 }
 
-func (s *DummyStore) Put(key []byte, value []byte) error {
-	s.db[string(key)] = string(value)
+func (s *InMemoryStore) Put(key []byte, value []byte) error {
+	(*s)[string(key)] = string(value)
 	return nil
 }
 
-func (s *DummyStore) Status() map[string]string {
+func (s *InMemoryStore) Status() map[string]string {
 	return map[string]string{
 		"driver": "dummy",
 	}
 }
 
-func (s *DummyStore) String() string {
-	return "DummyStore"
+func (s *InMemoryStore) String() string {
+	return "InMemoryStore"
 }

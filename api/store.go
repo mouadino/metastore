@@ -6,21 +6,21 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-
-	"github.com/mouadino/metastore/context"
 )
 
-func GetKeyHandler(ctxt *context.Context, req *http.Request) Response {
+func GetKeyHandler(ctxt *Context, req *http.Request) Response {
 	key := []byte(mux.Vars(req)["key"])
 	data, err := (*ctxt.Store).Get(key)
 	if err != nil {
 		return ResponseFromError(err)
 	}
-	// TODO: return NotFound if data is empty.
-	return Response{http.StatusOK, data}
+	// TODO: return NotFound if data is nil.
+	// TODO: Encoding/Decoding stored data, for now we only
+	// do strings.
+	return Response{http.StatusOK, string(data)}
 }
 
-func SetKeyHandler(ctxt *context.Context, req *http.Request) Response {
+func SetKeyHandler(ctxt *Context, req *http.Request) Response {
 	var newEntry map[string]string
 	decoder := json.NewDecoder(req.Body)
 	err := decoder.Decode(&newEntry)
@@ -39,5 +39,6 @@ func SetKeyHandler(ctxt *context.Context, req *http.Request) Response {
 	if err != nil {
 		return ResponseFromError(err)
 	}
+	// TODO: Return id !?
 	return Response{http.StatusCreated, true}
 }

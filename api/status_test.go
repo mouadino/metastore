@@ -6,18 +6,13 @@ import (
 	"net/http/httptest"
 	"reflect"
 	"testing"
-
-	"github.com/mouadino/metastore/context"
-	"github.com/mouadino/metastore/testhelpers"
 )
 
-var ctxt = context.Create("", 8080, &testhelpers.DummyStore{})
-
 func TestStatusHandler(t *testing.T) {
-	req, _ := http.NewRequest("GET", "", nil)
+	req, _ := http.NewRequest("GET", "/", nil)
 	resp := httptest.NewRecorder()
 
-	handler := Handler{ctxt, StatusHandler}
+	handler := testServer.getRouter()
 	handler.ServeHTTP(resp, req)
 
 	if resp.Code != http.StatusOK {
@@ -34,7 +29,6 @@ func TestStatusHandler(t *testing.T) {
 		t.Errorf("/status/ returned invalid json body: %v", resp.Body)
 	}
 	expectedBody := map[string]interface{}{
-		"api": ":8080",
 		"store": map[string]interface{}{
 			"driver": "dummy",
 		},

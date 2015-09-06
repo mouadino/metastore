@@ -5,31 +5,35 @@ import (
 	_ "net/http/pprof" // Expose runtime profiling data.
 
 	"github.com/gorilla/mux"
-
-	"github.com/mouadino/metastore/context"
 )
 
+// TODO: I don't like Context.
 type Server struct {
-	Ctxt *context.Context
+	opts *Options
+	Ctxt *Context
 }
 
-func MakeServer(ctxt *context.Context) *Server {
-	return &Server{ctxt}
+func MakeServer(opts *Options, ctxt *Context) *Server {
+	return &Server{opts, ctxt}
 }
 
 func (s *Server) ListenAndServe() error {
+	router := s.getRouter()
+	http.Handle("/", router)
+
+	addr := s.opts.Address()
+	s.Ctxt.Logger.Printf("Listening on %s ...", addr)
+	return http.ListenAndServe(addr, nil)
+}
+
+func (s *Server) getRouter() http.Handler {
 	muxRouter := mux.NewRouter()
 	// FIXME: Interface segregation principle
 	muxRouter.Handle("/", Handler{s.Ctxt, StatusHandler})
-	muxRouter.Handle("/store/{key}", Handler{s.Ctxt, GetKeyHandler}).
+	muxRouter.Handle("/store/{key}/", Handler{s.Ctxt, GetKeyHandler}).
 		Methods("GET")
 	muxRouter.Handle("/store/", Handler{s.Ctxt, SetKeyHandler}).
 		Methods("POST").
 		Headers("content-type", "application/json")
-
-	http.Handle("/", muxRouter)
-
-	addr := s.Ctxt.APIAddress()
-	s.Ctxt.Logger.Printf("Listening on %s ...", addr)
-	return http.ListenAndServe(addr, nil)
+	return muxRouter
 }

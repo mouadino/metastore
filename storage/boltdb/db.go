@@ -1,30 +1,23 @@
 package boltdb
 
 import (
+	"encoding/base64"
 	"fmt"
-	"path"
 
 	"github.com/boltdb/bolt"
 )
 
-const (
-	// FIXME: Hardcoded path
-	defaultPath = "/tmp/"
-)
-
 type DB struct {
 	boltDB     *bolt.DB
-	dbName     string
 	dbPath     string
 	bucketName []byte
 }
 
-func (db *DB) Open(name string) error {
+func (db *DB) Open(dbPath string) error {
 	var (
 		err    error
 		boltDB *bolt.DB
 	)
-	dbPath := path.Join(defaultPath, name)
 	boltDB, err = bolt.Open(dbPath, 0600, nil)
 	if err != nil {
 		return err
@@ -35,7 +28,7 @@ func (db *DB) Open(name string) error {
 		return err
 	}
 
-	bucketName := []byte(name)
+	bucketName := []byte(base64.StdEncoding.EncodeToString([]byte(dbPath)))
 	_, err = tx.CreateBucketIfNotExists(bucketName)
 	if err != nil {
 		tx.Rollback()
@@ -46,7 +39,6 @@ func (db *DB) Open(name string) error {
 		return err
 	}
 	db.boltDB = boltDB
-	db.dbName = name
 	db.dbPath = dbPath
 	db.bucketName = bucketName
 	return nil

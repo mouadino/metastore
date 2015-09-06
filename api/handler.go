@@ -2,13 +2,11 @@ package api
 
 import (
 	"net/http"
-
-	"github.com/mouadino/metastore/context"
 )
 
 type Handler struct {
-	*context.Context
-	handler func(*context.Context, *http.Request) Response
+	*Context
+	handler func(*Context, *http.Request) Response
 }
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

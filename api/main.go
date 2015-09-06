@@ -6,11 +6,12 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/mouadino/metastore/context"
+	"github.com/mouadino/metastore/storage"
 )
 
-func Main(ctxt *context.Context) {
-	server := MakeServer(ctxt)
+func Init(opts *Options, db *storage.DB) {
+	ctxt := CreateContext(*db)
+	server := MakeServer(opts, ctxt)
 	go server.ListenAndServe()
 
 	waitForTermination()
