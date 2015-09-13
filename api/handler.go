@@ -1,15 +1,15 @@
 package api
 
 import (
+	"encoding/json"
 	"net/http"
 )
 
-type Handler struct {
-	*Context
-	handler func(*Context, *http.Request) Response
-}
+type SimpleHandler func(*http.Request) (status int, body interface{})
 
-func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	response := h.handler(h.Context, r)
-	response.WriteTo(w)
+func (h SimpleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	status, body := h(r)
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(body)
+	w.Header().Set("Content-Type", JSONContentType)
 }

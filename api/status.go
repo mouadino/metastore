@@ -2,8 +2,14 @@ package api
 
 import (
 	"net/http"
+
+	"github.com/gorilla/context"
+	"github.com/mouadino/metastore/storage"
 )
 
-func StatusHandler(ctxt *Context, r *http.Request) Response {
-	return Response{http.StatusOK, ctxt.Status()}
+func StatusHandler(req *http.Request) (int, interface{}) {
+	store := context.Get(req, storeKey).(storage.DB)
+	return http.StatusOK, map[string]interface{}{
+		"store": store.Status(),
+	}
 }

@@ -31,5 +31,5 @@ func run(ctxt *cli.Context) {
 		log.Fatal(err)
 	}
 
-	api.Init(cfg.Options.API, &db)
+	api.Init(cfg.Options.API, db)
 }

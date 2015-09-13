@@ -7,33 +7,32 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// TODO: I don't like Context.
 type Server struct {
-	opts *Options
-	Ctxt *Context
+	Opts        *Options
+	Mux         *mux.Router
+	Middlewares []Middleware
 }
 
-func MakeServer(opts *Options, ctxt *Context) *Server {
-	return &Server{opts, ctxt}
+func NewServer(opts *Options, middlewares ...Middleware) *Server {
+	return &Server{
+		Opts:        opts,
+		Mux:         mux.NewRouter(),
+		Middlewares: middlewares,
+	}
+}
+
+func (s *Server) Handle(route string, handler http.Handler, middlewares ...Middleware) {
+	middlewares = append(s.Middlewares, middlewares...)
+	for _, middleware := range middlewares {
+		handler = middleware(handler)
+	}
+	s.Mux.Handle(route, handler)
 }
 
 func (s *Server) ListenAndServe() error {
-	router := s.getRouter()
-	http.Handle("/", router)
+	http.Handle("/", s.Mux)
 
-	addr := s.opts.Address()
-	s.Ctxt.Logger.Printf("Listening on %s ...", addr)
+	addr := s.Opts.Address()
+	//FIXME: s.Ctxt.Logger.Printf("Listening on %s ...", addr)
 	return http.ListenAndServe(addr, nil)
-}
-
-func (s *Server) getRouter() http.Handler {
-	muxRouter := mux.NewRouter()
-	// FIXME: Interface segregation principle
-	muxRouter.Handle("/", Handler{s.Ctxt, StatusHandler})
-	muxRouter.Handle("/store/{key}/", Handler{s.Ctxt, GetKeyHandler}).
-		Methods("GET")
-	muxRouter.Handle("/store/", Handler{s.Ctxt, SetKeyHandler}).
-		Methods("POST").
-		Headers("content-type", "application/json")
-	return muxRouter
 }

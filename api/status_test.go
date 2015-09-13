@@ -12,8 +12,7 @@ func TestStatusHandler(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/", nil)
 	resp := httptest.NewRecorder()
 
-	handler := testServer.getRouter()
-	handler.ServeHTTP(resp, req)
+	testServer.Mux.ServeHTTP(resp, req)
 
 	if resp.Code != http.StatusOK {
 		t.Errorf("/status/ expected to return %v but was %v", http.StatusOK, resp.Code)

@@ -2,43 +2,47 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"net/http"
 
+	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
+	"github.com/mouadino/metastore/storage"
 )
 
-func GetKeyHandler(ctxt *Context, req *http.Request) Response {
+func GetKeyHandler(req *http.Request) (int, interface{}) {
 	key := []byte(mux.Vars(req)["key"])
-	data, err := (*ctxt.Store).Get(key)
+	store := context.Get(req, storeKey).(storage.DB)
+	data, err := store.Get(key)
 	if err != nil {
-		return ResponseFromError(err)
+		return http.StatusNotFound, err
 	}
-	// TODO: return NotFound if data is nil.
 	// TODO: Encoding/Decoding stored data, for now we only
 	// do strings.
-	return Response{http.StatusOK, string(data)}
+	return http.StatusOK, string(data)
 }
 
-func SetKeyHandler(ctxt *Context, req *http.Request) Response {
+func SetKeyHandler(req *http.Request) (int, interface{}) {
+	// TODO: All this doesn't belong here.
 	var newEntry map[string]string
 	decoder := json.NewDecoder(req.Body)
 	err := decoder.Decode(&newEntry)
 	if err != nil {
-		return ResponseFromError(err)
+		return http.StatusBadRequest, err
 	}
 	key, ok := newEntry["key"]
 	if !ok {
-		return ResponseFromError(fmt.Errorf("malformed body"))
+		return http.StatusBadRequest, errors.New("malformed body")
 	}
 	value, ok := newEntry["value"]
 	if !ok {
-		return ResponseFromError(fmt.Errorf("malformed body"))
+		return http.StatusBadRequest, errors.New("malformed body")
 	}
-	err = (*ctxt.Store).Put([]byte(key), []byte(value))
+	//
+	store := context.Get(req, storeKey).(storage.DB)
+	err = store.Put([]byte(key), []byte(value))
 	if err != nil {
-		return ResponseFromError(err)
+		return http.StatusInternalServerError, err
 	}
-	// TODO: Return id !?
-	return Response{http.StatusCreated, true}
+	return http.StatusCreated, true
 }

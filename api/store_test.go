@@ -12,8 +12,7 @@ func TestStoreGetHandler(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/store/abc/", nil)
 	resp := httptest.NewRecorder()
 
-	handler := testServer.getRouter()
-	handler.ServeHTTP(resp, req)
+	testServer.Mux.ServeHTTP(resp, req)
 
 	if resp.Code != http.StatusOK {
 		t.Errorf("/store/ expected to return %v but was %v", http.StatusOK, resp.Code)
@@ -37,11 +36,10 @@ func TestStoreGetHandler(t *testing.T) {
 func TestStorePostHandler(t *testing.T) {
 	body := bytes.NewBuffer([]byte(`{"key": "a", "value": "bar"}`))
 	req, _ := http.NewRequest("POST", "/store/", body)
-	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Type", JSONContentType)
 	resp := httptest.NewRecorder()
 
-	handler := testServer.getRouter()
-	handler.ServeHTTP(resp, req)
+	testServer.Mux.ServeHTTP(resp, req)
 
 	if resp.Code != http.StatusCreated {
 		t.Errorf("/store/ expected to return %v but was %v", http.StatusCreated, resp.Code)
