@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log"
 	"net/http"
 	_ "net/http/pprof" // Expose runtime profiling data.
 
@@ -33,6 +34,6 @@ func (s *Server) ListenAndServe() error {
 	http.Handle("/", s.Mux)
 
 	addr := s.Opts.Address()
-	//FIXME: s.Ctxt.Logger.Printf("Listening on %s ...", addr)
+	log.Printf("Listening on %s ...", addr)
 	return http.ListenAndServe(addr, nil)
 }

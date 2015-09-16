@@ -17,7 +17,13 @@ func Init(opts *Options, db storage.DB) {
 }
 
 func MakeServer(opts *Options, db storage.DB) *Server {
-	server := NewServer(opts, WithContext(db))
+	server := NewServer(
+		opts,
+		Trace(),
+		WithContext(map[int]interface{}{
+			storeKey: db,
+		}),
+	)
 
 	server.Handle(
 		"/",

@@ -2,20 +2,23 @@ package api
 
 import (
 	"fmt"
+	"math/rand"
 	"net/http"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/gorilla/context"
-	"github.com/mouadino/metastore/storage"
 )
 
 type Middleware func(http.Handler) http.Handler
 
-func WithContext(store storage.DB) Middleware {
+func WithContext(values map[int]interface{}) Middleware {
 	return func(handler http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			context.Set(r, storeKey, store)
+			for k, v := range values {
+				context.Set(r, k, v)
+			}
 			defer context.Clear(r)
 			handler.ServeHTTP(w, r)
 		})
@@ -25,7 +28,8 @@ func WithContext(store storage.DB) Middleware {
 func Accept(contentTypes ...string) Middleware {
 	return func(handler http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if !in(r.Header.Get("content-type"), contentTypes) {
+			ct := normalizeContentType(r.Header)
+			if !contains(ct, contentTypes) {
 				http.Error(w, "", http.StatusUnsupportedMediaType)
 			}
 			handler.ServeHTTP(w, r)
@@ -40,12 +44,23 @@ func Method(methods ...string) Middleware {
 			if r.Method == "OPTIONS" {
 				w.Header().Set("Allow", strings.Join(methods, ", "))
 				w.WriteHeader(http.StatusOK)
-			} else if !in(r.Method, methods) {
+			} else if !contains(r.Method, methods) {
 				message := fmt.Sprintf("unknown method '%s' support %s", r.Method, methods)
 				http.Error(w, message, http.StatusMethodNotAllowed)
 			} else {
 				handler.ServeHTTP(w, r)
 			}
+		})
+	}
+}
+
+func Trace() Middleware {
+	return func(handler http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			traceId := strconv.FormatInt(rand.Int63()&0x001fffffffffffff, 10)
+			context.Set(r, traceIdKey, traceId)
+			w.Header().Set("X-Trace-Id", traceId)
+			handler.ServeHTTP(w, r)
 		})
 	}
 }

@@ -3,3 +3,10 @@
 # metastore
 
 WIP
+
+## CheckList
+
+[ ] logging
+[ ] metrics
+[ ] Dockerfile
+[ ] TODO

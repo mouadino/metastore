@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-type SimpleHandler func(*http.Request) (status int, body interface{})
+type SimpleHandler func(*http.Request) (int, interface{})
 
 func (h SimpleHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	status, body := h(r)

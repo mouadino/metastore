@@ -2,8 +2,9 @@ package api
 
 const (
 	storeKey int = iota
+	traceIdKey
 )
 
 const (
-	JSONContentType = "application/json; charset=UTF-8"
+	JSONContentType = "application/json"
 )
